@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+passlib[bcrypt]
+pydantic
+email-validator
+google-genai
+icalendar
