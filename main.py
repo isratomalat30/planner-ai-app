@@ -17,7 +17,7 @@ from icalendar import Calendar, Event
 # -----------------------------------------------------------------------------
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AQ.Ab8RN6Kuyn0aPJUFWifeASwbcrr4_BkFtwHXbeF7Ou9UBdm8lA")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "TU_API_KEY_AQUI")
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 app = FastAPI(
