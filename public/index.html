@@ -9,20 +9,20 @@
 </head>
 <body class="bg-slate-900 text-white min-h-screen flex flex-col font-sans">
 
-    <!-- NAV -->
-    <nav class="border-b border-slate-800 bg-slate-950/70 backdrop-blur px-6 py-4 flex justify-between items-center sticky top-0 z-40">
+    <!-- NAVEGACIÓN -->
+    <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur px-6 py-4 flex justify-between items-center sticky top-0 z-40">
         <div class="flex items-center gap-2">
             <i class="fa-solid fa-wand-magic-sparkles text-indigo-500 text-2xl"></i>
             <span class="text-xl font-bold text-white">Planner<span class="text-indigo-500">AI</span></span>
         </div>
         <div class="flex items-center gap-3" id="navAuthButtons">
-            <span id="userBadge" class="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-full border border-slate-700">Plan GRATIS</span>
-            <button onclick="openModal('authModal')" class="px-4 py-2 text-sm text-slate-300 hover:text-white">Iniciar Sesión</button>
-            <button onclick="openModal('checkoutModal')" class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg shadow-lg shadow-indigo-500/20">Obtener PRO ($6.99)</button>
+            <span id="userBadge" class="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-full border border-slate-700">Plan Gratis</span>
+            <button onclick="openModal('authModal')" class="px-4 py-2 text-sm text-slate-300 hover:text-white transition">Iniciar Sesión</button>
+            <button onclick="openModal('checkoutModal')" class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg shadow-lg transition">Suscripción PRO ($6.99)</button>
         </div>
     </nav>
 
-    <!-- MAIN CONTENT -->
+    <!-- CONTENIDO PRINCIPAL -->
     <main class="flex-1 max-w-4xl w-full mx-auto p-6 flex flex-col gap-6">
         
         <section class="text-center py-2">
@@ -30,85 +30,126 @@
                 Organiza tu agenda con <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Inteligencia Artificial</span>
             </h1>
             <p class="text-slate-400 text-sm">
-                Entre más detallada y específica sea tu explicación, más personalizado y exacto será tu horario generado.
+                Genera horarios optimizados y recursos de referencia para tus metas diarias.
             </p>
         </section>
 
-        <!-- FORMULARIO GENÉRICO Y LIMPIO -->
+        <!-- BANNER DE RECOMENDACIÓN -->
+        <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-xl p-4 flex items-start gap-3 text-sm text-indigo-200">
+            <i class="fa-solid fa-circle-info text-indigo-400 text-lg mt-0.5"></i>
+            <div>
+                <strong class="text-white font-semibold block mb-0.5">Recomendación para un resultado óptimo:</strong>
+                Entre más detallada sea la explicación de tus objetivos y requerimientos, más preciso y personalizado será el horario generado por la Inteligencia Artificial.
+            </div>
+        </div>
+
+        <!-- FORMULARIO DE INGRESO DE OBJETIVOS -->
         <section class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6 shadow-xl">
             <div class="flex flex-col gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Escribe tu objetivo:</label>
-                    <textarea id="rawPrompt" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Escribe aquí tu objetivo y la descripción del mismo..."></textarea>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Objetivos a planificar:</label>
+                    <textarea id="rawPrompt" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition text-sm" placeholder="Escribe aquí tu objetivo y la descripción del mismo..."></textarea>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Disponibilidad de tiempo:</label>
-                    <input type="text" id="availableHours" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500" value="Lunes a Viernes de 16:00 a 21:00" />
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Disponibilidad horaria habitual:</label>
+                    <input type="text" id="availableHours" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" value="Lunes a Viernes de 16:00 a 21:00" />
                 </div>
 
-                <button onclick="generateSchedule()" id="btnGenerate" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition">
+                <button onclick="generateSchedule()" id="btnGenerate" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2 transition">
                     <i class="fa-solid fa-bolt"></i>
-                    <span>Generar Mi Agenda Semanal</span>
+                    <span>Generar Agenda Semanal</span>
                 </button>
             </div>
         </section>
 
-        <!-- RESULTADOS -->
+        <!-- AGENDA RESULTANTE -->
         <section id="resultsSection" class="hidden flex flex-col gap-4">
             <div class="flex justify-between items-center">
-                <h2 class="text-xl font-bold text-white"><i class="fa-regular fa-calendar-check text-indigo-400 mr-2"></i>Tu Agenda</h2>
-                <button onclick="exportICS()" class="px-4 py-2 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 text-sm font-medium rounded-lg">
-                    <i class="fa-solid fa-file-arrow-down text-cyan-400 mr-1"></i> Descargar (.ics)
-                </button>
+                <h2 class="text-xl font-bold text-white"><i class="fa-regular fa-calendar-check text-indigo-400 mr-2"></i>Agenda Generada</h2>
+                <div class="flex gap-2">
+                    <button onclick="clearPlans()" class="px-3 py-2 bg-red-950/40 border border-red-500/30 hover:bg-red-900/50 text-red-300 text-sm font-medium rounded-lg flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-trash-can"></i> Limpiar
+                    </button>
+                    <button onclick="exportICS()" class="px-4 py-2 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 text-sm font-medium rounded-lg">
+                        <i class="fa-solid fa-file-arrow-down text-cyan-400 mr-1"></i> Descargar (.ics)
+                    </button>
+                </div>
             </div>
 
+            <!-- TARJETAS -->
             <div id="scheduleGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+            <!-- PANEL DE AJUSTES Y RE-SCHEDULING -->
+            <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-4 mt-2 flex flex-col gap-2">
+                <h3 class="text-xs font-bold text-slate-300 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-indigo-400"></i> ¿Deseas hacer algún cambio específico en este horario?
+                </h3>
+                <div class="flex gap-2">
+                    <input type="text" id="modifyRequest" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ej: Cambia la clase del Lunes al Martes a las 18:00..." />
+                    <button onclick="modifySchedule()" id="btnModify" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-xs transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate"></i> Aplicar
+                    </button>
+                </div>
+            </div>
         </section>
 
-        <!-- SECCIÓN DE PLANES -->
+        <!-- SECCIÓN DE PLANES DE SUSCRIPCIÓN -->
         <section class="border-t border-slate-800 pt-6 text-center">
-            <h2 class="text-xl font-bold text-white mb-4">Suscripción PRO</h2>
-            <div class="bg-gradient-to-r from-indigo-950 to-slate-900 border border-indigo-500/40 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div class="text-left">
-                    <span class="bg-indigo-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase">Suscripción Mensual</span>
-                    <h3 class="text-2xl font-bold text-white mt-2">$6.99 <span class="text-sm font-normal text-slate-400">/ mes</span></h3>
-                    <p class="text-xs text-slate-300">Hasta 3 planificaciones activas a la vez + re-scheduling prioritario por IA.</p>
+            <h2 class="text-xl font-bold text-white mb-2">Planes de Suscripción</h2>
+            <p class="text-slate-400 text-xs mb-6">Seleccione el plan que mejor se adapte a sus necesidades.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                <div class="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 flex flex-col justify-between text-left">
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Plan Gratuito</h3>
+                        <div class="text-3xl font-extrabold text-white my-3">$0 <span class="text-sm font-normal text-slate-400">/ mes</span></div>
+                        <ul class="text-xs text-slate-300 space-y-2 mb-6">
+                            <li><i class="fa-solid fa-check text-indigo-400 mr-2"></i>1 Planificación activa simultánea</li>
+                            <li><i class="fa-solid fa-check text-indigo-400 mr-2"></i>Exportación a Google Calendar (.ics)</li>
+                        </ul>
+                    </div>
+                    <button class="w-full py-2.5 bg-slate-700 text-slate-400 text-xs font-semibold rounded-xl" disabled>Plan Actual</button>
                 </div>
-                <button onclick="openModal('checkoutModal')" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition">Suscribirse con Tarjeta</button>
+
+                <div class="bg-slate-800/80 border-2 border-indigo-500 rounded-2xl p-6 flex flex-col justify-between text-left shadow-xl relative">
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Plan PRO</h3>
+                        <div class="text-3xl font-extrabold text-indigo-400 my-3">$6.99 <span class="text-sm font-normal text-slate-400">/ mes</span></div>
+                        <ul class="text-xs text-slate-200 space-y-2 mb-6">
+                            <li><i class="fa-solid fa-check text-indigo-400 mr-2"></i><strong>Hasta 3 Planificaciones activas simultáneas</strong></li>
+                            <li><i class="fa-solid fa-check text-indigo-400 mr-2"></i>Re-scheduling prioritario con IA</li>
+                        </ul>
+                    </div>
+                    <button onclick="openModal('checkoutModal')" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs shadow-lg transition">Suscribirse al Plan PRO</button>
+                </div>
             </div>
         </section>
     </main>
 
-    <!-- MODAL DE CHECKOUT / PAGO CON TARJETA -->
+    <!-- MODAL CHECKOUT TARJETA ($6.99) -->
     <div id="checkoutModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-6 shadow-2xl relative">
             <button onclick="closeModal('checkoutModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             
-            <div class="flex items-center gap-2 mb-4">
-                <i class="fa-solid fa-credit-card text-indigo-400 text-xl"></i>
-                <h3 class="text-xl font-bold text-white">Pago con Tarjeta</h3>
-            </div>
-
-            <div class="bg-indigo-950/50 border border-indigo-500/30 p-3 rounded-xl mb-4 text-xs text-indigo-200">
-                Plan PRO Mensual: <strong>$6.99 USD / mes</strong> (Transacción segura a tu cuenta).
-            </div>
+            <h3 class="text-xl font-bold text-white mb-1">Checkout de Suscripción</h3>
+            <p class="text-xs text-slate-400 mb-4">Plan PRO — <strong>$6.99 USD / mes</strong></p>
 
             <form onsubmit="processCardPayment(event)" class="flex flex-col gap-3">
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Nombre del Titular de la Tarjeta</label>
-                    <input type="text" id="cardHolder" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="Ej: Jorge Tomalá" />
+                    <label class="block text-xs text-slate-300 mb-1">Nombre del titular</label>
+                    <input type="text" id="cardHolder" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="Nombre Apellido" />
                 </div>
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Número de Tarjeta (Débito o Crédito)</label>
-                    <input type="text" id="cardNumber" maxlength="19" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="4500 0000 0000 0000" />
+                    <label class="block text-xs text-slate-300 mb-1">Número de tarjeta de crédito o débito</label>
+                    <input type="text" id="cardNumber" maxlength="19" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="0000 0000 0000 0000" />
                 </div>
                 <div class="flex gap-3">
                     <div class="flex-1">
-                        <label class="block text-xs text-slate-300 mb-1">Expiración (MM/AA)</label>
-                        <input type="text" id="cardExpiry" placeholder="12/28" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" />
+                        <label class="block text-xs text-slate-300 mb-1">Vencimiento</label>
+                        <input type="text" id="cardExpiry" placeholder="MM/AA" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" />
                     </div>
                     <div class="w-24">
                         <label class="block text-xs text-slate-300 mb-1">CVC</label>
@@ -116,15 +157,14 @@
                     </div>
                 </div>
 
-                <button type="submit" id="btnPay" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm transition mt-2 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-lock"></i>
-                    <span>Pagar $6.99 USD</span>
+                <button type="submit" id="btnPay" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs transition mt-2">
+                    Confirmar Pago ($6.99 USD)
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- MODAL DETALLES DE AGENDA -->
+    <!-- MODAL DETALLES Y LINKS -->
     <div id="detailsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-slate-800 border border-slate-700 w-full max-w-lg rounded-2xl p-6 shadow-2xl relative flex flex-col gap-3">
             <button onclick="closeModal('detailsModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
@@ -141,7 +181,7 @@
 
     <!-- SCRIPT -->
     <script>
-        const API_URL = "https://planner-ai-app.vercel.app/api/v1";
+        const API_URL = "https://planner-ai-backend.onrender.com/api/v1";
         let currentSchedule = [];
         let userPlan = "FREE";
 
@@ -151,12 +191,12 @@
             const btn = document.getElementById("btnGenerate");
 
             if (!rawPrompt) {
-                alert("Por favor ingresa tu objetivo.");
+                alert("Por favor ingrese una descripción de sus objetivos.");
                 return;
             }
 
             btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Generando agenda en segundos...`;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Procesando agenda...`;
 
             try {
                 const response = await fetch(`${API_URL}/planner/generate`, {
@@ -171,7 +211,7 @@
                 });
 
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.detail || "Error en el servidor");
+                if (!response.ok) throw new Error(data.detail || "Error al conectar con el servidor.");
 
                 currentSchedule = data;
                 renderSchedule(currentSchedule);
@@ -180,7 +220,51 @@
                 alert(error.message);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<i class="fa-solid fa-bolt"></i> <span>Generar Mi Agenda Semanal</span>`;
+                btn.innerHTML = `<i class="fa-solid fa-bolt"></i> <span>Generar Agenda Semanal</span>`;
+            }
+        }
+
+        async function modifySchedule() {
+            const req = document.getElementById("modifyRequest").value.trim();
+            const btn = document.getElementById("btnModify");
+            if (!req || currentSchedule.length === 0) return;
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Reacomodando...`;
+
+            try {
+                const response = await fetch(`${API_URL}/planner/modify`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        current_schedule: currentSchedule,
+                        modification_request: req
+                    })
+                });
+
+                if (!response.ok) throw new Error("No se pudo modificar la agenda.");
+
+                currentSchedule = await response.json();
+                renderSchedule(currentSchedule);
+                document.getElementById("modifyRequest").value = "";
+
+            } catch (e) {
+                alert(e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-rotate"></i> Aplicar`;
+            }
+        }
+
+        async function clearPlans() {
+            if (!confirm("¿Deseas limpiar tu plan activo actual?")) return;
+            try {
+                await fetch(`${API_URL}/planner/clear?user_id=usr_active`, { method: "POST" });
+                currentSchedule = [];
+                document.getElementById("resultsSection").classList.add("hidden");
+                alert("Planes borrados correctamente.");
+            } catch (e) {
+                alert("Error al eliminar los datos.");
             }
         }
 
@@ -188,7 +272,7 @@
             e.preventDefault();
             const btn = document.getElementById("btnPay");
             btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Procesando tarjeta...`;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Procesando...`;
 
             try {
                 const response = await fetch(`${API_URL}/payments/process-card`, {
@@ -210,13 +294,13 @@
                 document.getElementById("userBadge").className = "text-xs bg-indigo-500/20 text-indigo-300 px-3 py-1.5 rounded-full border border-indigo-500/30";
                 document.getElementById("userBadge").innerText = "Plan PRO Activo ($6.99/mes)";
                 closeModal('checkoutModal');
-                alert("¡Pago procesado con éxito! Ahora tienes acceso al Plan PRO.");
+                alert("Pago confirmado. Su suscripción PRO ha sido activada exitosamente.");
 
             } catch (err) {
                 alert(err.message);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<i class="fa-solid fa-lock"></i> <span>Pagar $6.99 USD</span>`;
+                btn.innerHTML = `Confirmar Pago ($6.99 USD)`;
             }
         }
 

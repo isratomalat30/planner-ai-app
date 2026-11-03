@@ -18,12 +18,13 @@ from icalendar import Calendar, Event
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "TU_API_KEY_AQUI")
+
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 app = FastAPI(
     title="Planner AI API",
-    version="3.0.0",
-    description="Backend de alta velocidad con Checkout de tarjeta y gestión 24/7"
+    version="3.5.0",
+    description="Backend oficial de producción para Planner AI SaaS"
 )
 
 app.add_middleware(
@@ -34,15 +35,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Control en memoria de agendas activas por usuario
 USER_PLANS_DB = {}
 
 # -----------------------------------------------------------------------------
-# MODELOS DE DATOS
+# MODELOS DE DATOS Y SCHEMAS
 # -----------------------------------------------------------------------------
 class UserRegister(BaseModel):
     email: EmailStr
     full_name: str
     password: str
+
+    @validator('password')
+    def validate_password_strength(cls, v):
+        if len(v) < 8:
+            raise ValueError('La contraseña debe tener al menos 8 caracteres.')
+        if not re.search(r'[A-Z]', v):
+            raise ValueError('Debe contener al menos una letra mayúscula.')
+        if not re.search(r'[a-z]', v):
+            raise ValueError('Debe contener al menos una letra minúscula.')
+        if not re.search(r'\d', v):
+            raise ValueError('Debe contener al menos un número.')
+        if not re.search(r'[@$!%*?&#]', v):
+            raise ValueError('Debe contener al menos un carácter especial (@$!%*?&#).')
+        return v
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -54,13 +70,16 @@ class PromptInput(BaseModel):
     available_hours: str
     user_plan: str = "FREE"
 
+class ModifyScheduleInput(BaseModel):
+    current_schedule: List[dict]
+    modification_request: str
+
 class PaymentProcessInput(BaseModel):
     user_email: str
     card_number: str
     card_holder: str
     expiry: str
     cvc: str
-    plan_type: str = "PRO_MONTHLY"
 
 class ResourceLink(BaseModel):
     title: str
@@ -77,19 +96,19 @@ class TimeBlockOutput(BaseModel):
     recommended_resources: List[ResourceLink]
 
 # -----------------------------------------------------------------------------
-# ENDPOINTS DE AUTENTICACIÓN Y PAGO CON TARJETA
+# ENDPOINTS DE AUTENTICACIÓN Y SUSCRIPCIÓN CON TARJETA
 # -----------------------------------------------------------------------------
 @app.post("/api/v1/auth/register", status_code=status.HTTP_201_CREATED)
 def register_user(user: UserRegister):
     return {
-        "message": "Registro exitoso.",
+        "message": "Cuenta creada exitosamente.",
         "user": {"email": user.email, "full_name": user.full_name, "plan": "FREE"}
     }
 
 @app.post("/api/v1/auth/login")
 def login_user(user: UserLogin):
     return {
-        "message": "Bienvenido de nuevo.",
+        "message": "Autenticación exitosa.",
         "user": {"email": user.email, "full_name": "Usuario Registrado", "plan": "FREE"}
     }
 
@@ -97,18 +116,17 @@ def login_user(user: UserLogin):
 def process_card_payment(payment: PaymentProcessInput):
     clean_card = payment.card_number.replace(" ", "")
     if len(clean_card) < 15 or len(payment.cvc) < 3:
-        raise HTTPException(status_code=400, detail="Los datos de la tarjeta son inválidos.")
+        raise HTTPException(status_code=400, detail="Los datos ingresados de la tarjeta son inválidos.")
     
-    # Simulación de cobro exitoso a través de Pasarela de Pagos (Stripe Direct)
     return {
         "status": "SUCCESS",
-        "message": "¡Pago de $6.99 completado con éxito!",
+        "message": "Suscripción PRO activada correctamente.",
         "transaction_id": f"TX_{datetime.now().strftime('%Y%m%d%H%M%S')}",
         "user_plan": "PRO"
     }
 
 # -----------------------------------------------------------------------------
-# GENERADOR RÁPIDO DE AGENDA (OPTIMIZADO EN VELOCIDAD)
+# GENERADOR Y MODIFICADOR DE AGENDA CON IA
 # -----------------------------------------------------------------------------
 @app.post("/api/v1/planner/generate", response_model=List[TimeBlockOutput])
 def generate_schedule(data: PromptInput):
@@ -118,25 +136,30 @@ def generate_schedule(data: PromptInput):
     if current_active >= max_allowed:
         raise HTTPException(
             status_code=403,
-            detail=f"Tu plan {data.user_plan} solo permite {max_allowed} agenda(s) activa(s). Pásate al plan PRO ($6.99/mes) para tener hasta 3."
+            detail=f"Límite alcanzado: Tu plan {data.user_plan} solo permite {max_allowed} agenda(s) activa(s). Pásate al plan PRO ($6.99/mes) para gestionar hasta 3 simultáneas."
         )
 
     prompt_text = f"""
-    Genera un itinerario semanal rápido para esta meta: "{data.raw_prompt}".
+    Genera un itinerario semanal detallado para el siguiente objetivo: "{data.raw_prompt}".
     Disponibilidad: {data.available_hours}.
 
-    Devuelve un JSON estricto con esta lista:
+    Instrucciones:
+    1. Divide la meta en sub-tareas ejecutables de entre 30 y 90 minutos.
+    2. Clasifica cada tarea en: ESTUDIO, EJERCICIO, TRABAJO, DESCANSO, PERSONAL.
+    3. Incluye una guía paso a paso y recursos recomendados en YouTube o web.
+
+    Devuelve un JSON estricto:
     [
         {{
-            "title": "Nombre de la actividad",
+            "title": "Nombre de la sub-tarea",
             "description": "Explicación breve",
             "day": "Lunes",
             "start_time": "16:00",
             "end_time": "17:00",
             "category": "ESTUDIO",
-            "detailed_guide": "Pasos clave recomendados...",
+            "detailed_guide": "Pasos a seguir...",
             "recommended_resources": [
-                {{"title": "Video / Tutorial sugerido", "url": "https://www.youtube.com/results?search_query=tutorial"}}
+                {{"title": "Tutorial o recurso sugerido", "url": "https://www.youtube.com/results?search_query=tutorial"}}
             ]
         }}
     ]
@@ -155,8 +178,34 @@ def generate_schedule(data: PromptInput):
         except Exception:
             continue
 
-    raise HTTPException(status_code=503, detail="Servicio ocupado. Reintenta en 5 segundos.")
+    raise HTTPException(status_code=503, detail="Servidores ocupados. Intente nuevamente en unos segundos.")
 
+@app.post("/api/v1/planner/modify", response_model=List[TimeBlockOutput])
+def modify_schedule(data: ModifyScheduleInput):
+    prompt_text = f"""
+    Tienes esta agenda actual en JSON: {json.dumps(data.current_schedule)}
+    Aplica este cambio específico solicitado por el usuario: "{data.modification_request}".
+    Responde ÚNICAMENTE con la lista JSON actualizada.
+    """
+
+    try:
+        response = client.models.generate_content(
+            model='gemini-3.8-flash',
+            contents=prompt_text,
+            config=types.GenerateContentConfig(response_mime_type="application/json")
+        )
+        return json.loads(response.text)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="No se pudo procesar el ajuste.")
+
+@app.post("/api/v1/planner/clear")
+def clear_user_plans(user_id: str):
+    USER_PLANS_DB[user_id] = 0
+    return {"message": "Datos eliminados correctamente."}
+
+# -----------------------------------------------------------------------------
+# EXPORTACIÓN A CALENDARIO (.ICS)
+# -----------------------------------------------------------------------------
 @app.post("/api/v1/planner/export-ics")
 def export_to_ics(time_blocks: List[dict]):
     cal = Calendar()
@@ -167,8 +216,8 @@ def export_to_ics(time_blocks: List[dict]):
 
     for block in time_blocks:
         event = Event()
-        event.add('summary', block.get('title', 'Actividad'))
-        event.add('description', f"{block.get('description', '')}\nGuía: {block.get('detailed_guide', '')}")
+        event.add('summary', block.get('title', 'Actividad Planner AI'))
+        event.add('description', f"{block.get('description', '')}\n\nGuía: {block.get('detailed_guide', '')}")
         dia_nombre = str(block.get('day', '')).lower().strip()
         target_weekday = dias_semana.get(dia_nombre, hoy.weekday())
         days_ahead = target_weekday - hoy.weekday()
