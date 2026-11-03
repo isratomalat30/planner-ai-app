@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planner AI - Tu Agenda Inteligente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col font-sans">
+
+    <!-- NAV -->
+    <nav class="border-b border-slate-800 bg-slate-950/70 backdrop-blur px-6 py-4 flex justify-between items-center sticky top-0 z-40">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-wand-magic-sparkles text-indigo-500 text-2xl"></i>
+            <span class="text-xl font-bold text-white">Planner<span class="text-indigo-500">AI</span></span>
+        </div>
+        <div class="flex items-center gap-3" id="navAuthButtons">
+            <span id="userBadge" class="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-full border border-slate-700">Plan GRATIS</span>
+            <button onclick="openModal('authModal')" class="px-4 py-2 text-sm text-slate-300 hover:text-white">Iniciar Sesión</button>
+            <button onclick="openModal('checkoutModal')" class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg shadow-lg shadow-indigo-500/20">Obtener PRO ($6.99)</button>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 max-w-4xl w-full mx-auto p-6 flex flex-col gap-6">
+        
+        <section class="text-center py-2">
+            <h1 class="text-4xl font-extrabold text-slate-100 mb-2">
+                Organiza tu agenda con <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Inteligencia Artificial</span>
+            </h1>
+            <p class="text-slate-400 text-sm">
+                Entre más detallada y específica sea tu explicación, más personalizado y exacto será tu horario generado.
+            </p>
+        </section>
+
+        <!-- FORMULARIO GENÉRICO Y LIMPIO -->
+        <section class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6 shadow-xl">
+            <div class="flex flex-col gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Escribe tu objetivo:</label>
+                    <textarea id="rawPrompt" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Escribe aquí tu objetivo y la descripción del mismo..."></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Disponibilidad de tiempo:</label>
+                    <input type="text" id="availableHours" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500" value="Lunes a Viernes de 16:00 a 21:00" />
+                </div>
+
+                <button onclick="generateSchedule()" id="btnGenerate" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Generar Mi Agenda Semanal</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- RESULTADOS -->
+        <section id="resultsSection" class="hidden flex flex-col gap-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-bold text-white"><i class="fa-regular fa-calendar-check text-indigo-400 mr-2"></i>Tu Agenda</h2>
+                <button onclick="exportICS()" class="px-4 py-2 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 text-sm font-medium rounded-lg">
+                    <i class="fa-solid fa-file-arrow-down text-cyan-400 mr-1"></i> Descargar (.ics)
+                </button>
+            </div>
+
+            <div id="scheduleGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+
+        <!-- SECCIÓN DE PLANES -->
+        <section class="border-t border-slate-800 pt-6 text-center">
+            <h2 class="text-xl font-bold text-white mb-4">Suscripción PRO</h2>
+            <div class="bg-gradient-to-r from-indigo-950 to-slate-900 border border-indigo-500/40 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="text-left">
+                    <span class="bg-indigo-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase">Suscripción Mensual</span>
+                    <h3 class="text-2xl font-bold text-white mt-2">$6.99 <span class="text-sm font-normal text-slate-400">/ mes</span></h3>
+                    <p class="text-xs text-slate-300">Hasta 3 planificaciones activas a la vez + re-scheduling prioritario por IA.</p>
+                </div>
+                <button onclick="openModal('checkoutModal')" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition">Suscribirse con Tarjeta</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL DE CHECKOUT / PAGO CON TARJETA -->
+    <div id="checkoutModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-6 shadow-2xl relative">
+            <button onclick="closeModal('checkoutModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="flex items-center gap-2 mb-4">
+                <i class="fa-solid fa-credit-card text-indigo-400 text-xl"></i>
+                <h3 class="text-xl font-bold text-white">Pago con Tarjeta</h3>
+            </div>
+
+            <div class="bg-indigo-950/50 border border-indigo-500/30 p-3 rounded-xl mb-4 text-xs text-indigo-200">
+                Plan PRO Mensual: <strong>$6.99 USD / mes</strong> (Transacción segura a tu cuenta).
+            </div>
+
+            <form onsubmit="processCardPayment(event)" class="flex flex-col gap-3">
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">Nombre del Titular de la Tarjeta</label>
+                    <input type="text" id="cardHolder" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="Ej: Jorge Tomalá" />
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">Número de Tarjeta (Débito o Crédito)</label>
+                    <input type="text" id="cardNumber" maxlength="19" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="4500 0000 0000 0000" />
+                </div>
+                <div class="flex gap-3">
+                    <div class="flex-1">
+                        <label class="block text-xs text-slate-300 mb-1">Expiración (MM/AA)</label>
+                        <input type="text" id="cardExpiry" placeholder="12/28" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" />
+                    </div>
+                    <div class="w-24">
+                        <label class="block text-xs text-slate-300 mb-1">CVC</label>
+                        <input type="text" id="cardCVC" maxlength="4" placeholder="123" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white" />
+                    </div>
+                </div>
+
+                <button type="submit" id="btnPay" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm transition mt-2 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-lock"></i>
+                    <span>Pagar $6.99 USD</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DETALLES DE AGENDA -->
+    <div id="detailsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-lg rounded-2xl p-6 shadow-2xl relative flex flex-col gap-3">
+            <button onclick="closeModal('detailsModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 id="modalTitle" class="text-lg font-bold text-white"></h3>
+            <div class="bg-slate-900 p-3 rounded-xl border border-slate-700/60">
+                <h4 class="text-xs font-semibold text-indigo-400 mb-1">Guía Paso a Paso:</h4>
+                <p id="modalGuide" class="text-sm text-slate-300 leading-relaxed"></p>
+            </div>
+            <div id="modalResources" class="flex flex-col gap-2"></div>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+        const API_URL = "http://127.0.0.1:8000/api/v1";
+        let currentSchedule = [];
+        let userPlan = "FREE";
+
+        async function generateSchedule() {
+            const rawPrompt = document.getElementById("rawPrompt").value.trim();
+            const availableHours = document.getElementById("availableHours").value.trim();
+            const btn = document.getElementById("btnGenerate");
+
+            if (!rawPrompt) {
+                alert("Por favor ingresa tu objetivo.");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Generando agenda en segundos...`;
+
+            try {
+                const response = await fetch(`${API_URL}/planner/generate`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        user_id: "usr_active",
+                        raw_prompt: rawPrompt,
+                        available_hours: availableHours,
+                        user_plan: userPlan
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail || "Error en el servidor");
+
+                currentSchedule = data;
+                renderSchedule(currentSchedule);
+
+            } catch (error) {
+                alert(error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-bolt"></i> <span>Generar Mi Agenda Semanal</span>`;
+            }
+        }
+
+        async function processCardPayment(e) {
+            e.preventDefault();
+            const btn = document.getElementById("btnPay");
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Procesando tarjeta...`;
+
+            try {
+                const response = await fetch(`${API_URL}/payments/process-card`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        user_email: "cliente@email.com",
+                        card_holder: document.getElementById("cardHolder").value,
+                        card_number: document.getElementById("cardNumber").value,
+                        expiry: document.getElementById("cardExpiry").value,
+                        cvc: document.getElementById("cardCVC").value
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail);
+
+                userPlan = "PRO";
+                document.getElementById("userBadge").className = "text-xs bg-indigo-500/20 text-indigo-300 px-3 py-1.5 rounded-full border border-indigo-500/30";
+                document.getElementById("userBadge").innerText = "Plan PRO Activo ($6.99/mes)";
+                closeModal('checkoutModal');
+                alert("¡Pago procesado con éxito! Ahora tienes acceso al Plan PRO.");
+
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-lock"></i> <span>Pagar $6.99 USD</span>`;
+            }
+        }
+
+        function renderSchedule(blocks) {
+            const container = document.getElementById("scheduleGrid");
+            container.innerHTML = "";
+            blocks.forEach((block, i) => {
+                const card = document.createElement("div");
+                card.className = "bg-slate-800 border border-slate-700/60 p-4 rounded-xl flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-bold text-indigo-400 bg-indigo-500/20 px-2 py-0.5 rounded">${block.category}</span>
+                            <span class="text-xs text-slate-300 font-bold">${block.day} (${block.start_time} - ${block.end_time})</span>
+                        </div>
+                        <h3 class="font-bold text-white mb-1">${block.title}</h3>
+                        <p class="text-xs text-slate-400 mb-3">${block.description}</p>
+                    </div>
+                    <button onclick="showDetails(${i})" class="py-2 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 rounded-lg text-xs font-semibold">Ver Detalles y Recursos</button>
+                `;
+                container.appendChild(card);
+            });
+            document.getElementById("resultsSection").classList.remove("hidden");
+        }
+
+        function showDetails(index) {
+            const b = currentSchedule[index];
+            document.getElementById("modalTitle").innerText = b.title;
+            document.getElementById("modalGuide").innerText = b.detailed_guide;
+            const res = document.getElementById("modalResources");
+            res.innerHTML = "";
+            if(b.recommended_resources) {
+                b.recommended_resources.forEach(r => {
+                    res.innerHTML += `<a href="${r.url}" target="_blank" class="text-xs bg-slate-900 border border-slate-700 p-2 rounded text-cyan-400 flex items-center gap-2"><i class="fa-brands fa-youtube text-red-500"></i> ${r.title}</a>`;
+                });
+            }
+            openModal('detailsModal');
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove("hidden"); }
+        function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
+
+        async function exportICS() {
+            if (currentSchedule.length === 0) return;
+            const res = await fetch(`${API_URL}/planner/export-ics`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(currentSchedule)
+            });
+            const data = await res.json();
+            const blob = new Blob([data.ics_content], { type: 'text/calendar' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'AgendaPlannerAI.ics';
+            a.click();
+        }
+    </script>
+</body>
+</html>
